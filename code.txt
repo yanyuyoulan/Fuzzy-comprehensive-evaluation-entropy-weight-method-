@@ -1,0 +1,36 @@
+% 'data' contains evaluation data for n objects across m criteria, arranged in an n×m matrix.
+% 'data' is the sole input required from external sources.
+function result = SQ(data)
+    R = data;
+    [rows, cols] = size(R);  % Obtain dimensions of the input matrix, rows representing object count, cols repre-senting criterion count.
+    Rmin = min(R, [], 2);     % Mini-mum value in each row
+    Rmax = max(R, [], 2);     % Maximum value in each row
+    A = Rmax - Rmin;          % De-nominator, calculated as the difference between max and min values per col-umn
+    y = R - repmat(Rmin, rows, 1);  % Subtract the minimum value of each column from every element in 'R'
+    for j = 1 : cols  % Loop for positive indicator normalization, dividing each element by its respective denominator
+        y(:,j) = y(:,j)./A(j);
+    end
+    S = sum(y, 1);  % Sum of each column (for column normalization)
+    for i = 1 : cols  % Loop for column normalization
+        Y(:,i) = y(:,i)./S(i);  
+    end
+    Y;  % Display results of positive indicator standardization
+    k = 1./log(rows);  % Calculate con-stant k
+    lnYij1 = zeros(rows, cols);  % Ini-tialize lnYij1 matrix
+    % Calculation of lnYij1
+    for i = 1:rows
+        for j = 1:cols
+            if Y(i,j) == 0
+                lnYij1(i,j) = 0;
+            else
+                lnYij1(i,j) = log(Y(i,j));  % Take the natural loga-rithm
+            end
+        end
+    end
+    ej1 = -k * sum(Y .* lnYij1, 1);  % Compute entropy values ej1 for positive indicators
+    weights1 = (1 - ej1) ./ (cols - sum(ej1));  % Calculate weights for positive indicators, weights1
+    % Structure definition to store results
+    result(1).normalized = Y;  % Assign normalized matrix to 'result'
+    result(1).entropy = ej1;   % Assign entropy values to 'result'
+    result(1).weights = weights1;  % Assign weights to 'result'
+end
